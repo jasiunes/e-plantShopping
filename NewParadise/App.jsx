@@ -1,19 +1,24 @@
-import React from 'react';
-import { BrowserRouter, HashRouter, Route, Routes } from 'react-router-dom';
-import LandingPage from './features/LandingPage/LandingPage';
-import ProductListing from './features/Product/ProductListing/ProductListing';
-import ShoppingCart from './features/Product/ShoppingCart/ShoppingCart';
 
-const App: React.FC = () => {
+import React, { useState } from "react";
+import ProductList from "./components/ProductList"; // mevcutsa
+
+function App() {
+  const [showProducts, setShowProducts] = useState(false);
+
+  const handleGetStarted = () => {
+    setShowProducts(true); // butona basınca ürünleri göster
+  };
+
+  if (showProducts) {
+    return <ProductList />; // ProductList JSX'i direkt göster
+  }
+
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<LandingPage/>} />
-        <Route path="product/list" element={<ProductListing/>} />
-        <Route path="product/cart" element={<ShoppingCart/>} />
-      </Routes>
-    </BrowserRouter>
+    <section className="landing">
+      <h1>Welcome to Paradise Nursery</h1>
+      <button onClick={handleGetStarted}>Get Started</button>
+    </section>
   );
-};
+}
 
 export default App;
