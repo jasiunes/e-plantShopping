@@ -1,77 +1,90 @@
 
-// src/components/CartItem.jsx
-import React from "react";
+// src/components/Cart.jsx
+import React, { useMemo } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import CartItem from "./CartItem";
+import { increase, decrease, removeItem, clearCart } from "../store/cartSlice"; // yollarını projene göre ayarla
+import { useNavigate } from "react-router-dom";
 
-const CartItem = ({ item, onIncrease, onDecrease, onRemove }) => {
-  if (!item) return null;
+const Cart = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const items = useSelector((state) => state.cart?.items ?? []);
 
-  const { id, name, price, quantity, image } = item;
-  const itemTotal = Number(price) * Number(quantity); // toplam = birim fiyat × adet
+  const cartTotal = useMemo(
+    () => items.reduce((sum, it) => sum + Number(it.price) * Number(it.quantity), 0),
+    [items]
+  );
+
+  const handleIncrease = (id) => dispatch(increase(id));
+  const handleDecrease = (id) => dispatch(decrease(id));
+  const handleRemove = (id) => dispatch(removeItem(id));
+
+  const handleCheckout = () => {
+    // burada ödeme akışına geçebilirsin (ör. /checkout)
+    // demo: sepeti temizle ve teşekkür sayfasına yönlendir
+    dispatch(clearCart());
+    navigate("/checkout");
+  };
+
+  const handleContinueShopping = () => {
+    // ürün listesine geri dön
+    navigate("/products");
+  };
+
+  if (!items.length) {
+    return (
+      <section className="cart">
+        <h2>Your Cart</h2>
+        <p>Your cart is empty.</p>
+        <button onClick={handleContinueShopping}>Continue Shopping</button>
+      </section>
+    );
+  }
 
   return (
-    <div
-      className="cart-item"
-      style={{
-        display: "grid",
-        gridTemplateColumns: "80px 1fr auto",
-        gap: "12px",
-        alignItems: "center",
-        padding: "12px 0",
-        borderBottom: "1px solid #eee",
-      }}
-    >
-      <img
-        src={image}
-        alt={name}
-        style={{ width: 80, height: 80, objectFit: "cover", borderRadius: 8 }}
-      />
+    <section className="cart">
+      <h2>Your Cart</h2>
 
-      <div>
-        <div style={{ fontWeight: 600 }}>{name}</div>
-        <div style={{ color: "#555", marginTop: 4 }}>
-          Unit price:{" "}
-          {Number(price).toLocaleString(undefined, {
-            style: "currency",
-            currency: "EUR",
-          })}
-        </div>
-        <div style={{ display: "flex", alignItems: "center", marginTop: 8, gap: 8 }}>
-          <button
-            aria-label="Decrease quantity"
-            onClick={() => onDecrease?.(id)}
-            disabled={quantity <= 1}
-          >
-            −
-          </button>
-          <span>{quantity}</span>
-          <button aria-label="Increase quantity" onClick={() => onIncrease?.(id)}>
-            +
-          </button>
-          <button
-            aria-label="Remove item"
-            onClick={() => onRemove?.(id)}
-            style={{ marginLeft: 12, color: "#a00" }}
-          >
-            Remove
-          </button>
-        </div>
+      <div className="cart-items">
+        {items.map((item) => (
+          <CartItem
+            key={item.id}
+            item={item}
+            onIncrease={handleIncrease}
+            onDecrease={handleDecrease}
+            onRemove={handleRemove}
+          />
+        ))}
       </div>
 
-      <div style={{ textAlign: "right" }}>
-        <div style={{ fontWeight: 700 }}>
-          {itemTotal.toLocaleString(undefined, { style: "currency", currency: "EUR" })}
-        </div>
-        <div style={{ fontSize: 12, color: "#666" }}>
-          ({quantity} ×{" "}
-          {Number(price).toLocaleString(undefined, {
-            style: "currency",
-            currency: "EUR",
-          })}
-          )
-        </div>
+      {/* TOTAL CART AMOUNT (required) */}
+      <div
+        className="cart-total"
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginTop: 16,
+          paddingTop: 12,
+          borderTop: "1px solid #eee",
+        }}
+      >
+        <strong>Total:</strong>
+        <strong>
+          {cartTotal.toLocaleString(undefined, { style: "currency", currency: "EUR" })}
+        </strong>
       </div>
-    </div>
+
+      {/* ACTION BUTTONS (required) */}
+      <div style={{ marginTop: 16, display: "flex", gap: 12 }}>
+        <button onClick={handleContinueShopping}>Continue Shopping</button>
+        <button onClick={handleCheckout} style={{ background: "#2e7d32", color: "#fff" }}>
+          Checkout
+        </button>
+      </div>
+    </section>
   );
 };
 
-export default CartItem;
+export default Cart;
